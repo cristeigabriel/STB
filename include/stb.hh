@@ -93,7 +93,7 @@ struct fixed_string: public std::array<char, N + 1> {
 };
 
 template<std::size_t N>
-fixed_string(const char (&)[N]) -> fixed_string<N - 1>;
+fixed_string(const char (&)[N]) noexcept -> fixed_string<N - 1>;
 
 template<char delimiter, char mask, int masked>
 struct basic_hex_string_array_conversion {
