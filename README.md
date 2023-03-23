@@ -1,17 +1,41 @@
 # STB
-**Compile-time** Hex-sequence String to Byte Array.
+Compile-time conversion library, from IDA-style string to array (supports wildcarding).
 
-# Why?
-You may ask, why'd you want to do this? Well, this is a common issue in the cheat development scene, where people resort to inefficient alternatives, which are done at runtime, despite that often not being required. (Obviously, anyhow, if your input is not available at compile-time, you must adapt to a run-time approach, but in publicly available projects, this is not the case, more often than not.) This allows you to use a standard format input (spec. "IDA-style") string, which'll get converted to a standard array, which then you can directly use. This, unlike runtime methods, hides the string behind the operation. This also has the most compliant semantics allowing for complex formations. it also allows for parser customization (i.e. change delimiter character, wildcard character, wildcard character value) by the generic formator.
-
-# How?
-You can download the self-reliant header and include it to your project, or do this:
+# How to use
+Step 1:
 ```
-#include <https://raw.githubusercontent.com/cristeigabriel/STB/main/stb/stb.hh>
+git clone https://github.com/cristeigabriel/STB.git
 ```
 
-# Usage
-Refer to [this](https://github.com/cristeigabriel/STB/blob/main/stb.cc) for an example and test.
+Step 2:
+Include `include/stb.hh` to your project.
+
+Step 3:
+Either create a custom conversion type with `stb::basic_hex_string_array_conversion` or use `stb::hex_string_array_conversion` (whitespace delimiter, question-mark wildcard, `-1` wildcard value) (short alias: `stb::simple_conversion`).
+
+Example:
+```
+stb::simple_conversion::build<stb::fixed_string {"AA BB CC DD EE FF"}>::value
+// stb::simple_conversion::build<"AA BB CC DD EE FF">::value also works
+```
+
+You may also create a sanitary macro that looks something like:
+```
+#define CONV(x) stb::simple_conversion::build<stb::fixed_string {X}>::value
+```
+then do:
+```
+CONV("AA BB CC DD EE FF")
+```
+
+# How this works
+We pass a `stb::fixed_string` to a conversion type's build, we run `make` on it, we ensure constant evaluation through `stb::consteval_value` on `make` which itself calls `parse::get` then does some logic utilizing the information and `detail`, we store the result of `make` in `value` inside the build instance.
+
+# Results
+This leaves no trace in the binary by ensuring constant evaluation (doesn't require `consteval`) of conversion string parser and conversion builder.
+
+# Compile times
+This should go in a pre-compiled header. You may also disable compliance verifications by defining `STB_OMIT_TESTS` before include.
 
 # License
-[WTFPL](https://github.com/cristeigabriel/STB/blob/main/LICENSE)
+[LICENSE](./LICENSE)
