@@ -2,8 +2,8 @@
  * @file stb.hh
  * @author Cristei Gabriel-Marian (cristei.g772@gmail.com)
  * @brief Compile-time String To Bytes (STB)
- * @version 0.1
- * @date 2021-09-06
+ * @version 1.0
+ * @date 2023-03-23
  * 
  * Last update: 03/23/2023 (mm/dd/yyyy): [Breaking update]
  * Modernize, undo some cancer, change some naming, file structure,
