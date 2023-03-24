@@ -95,7 +95,7 @@ struct fixed_string: public std::array<char, N + 1> {
 template<std::size_t N>
 fixed_string(const char (&)[N]) noexcept -> fixed_string<N - 1>;
 
-template<char delimiter, char mask, int masked>
+template<char delimiter, char mask, typename element_type, element_type masked>
 struct basic_hex_string_array_conversion {
     template<fixed_string str>
     struct build {
@@ -141,10 +141,10 @@ struct basic_hex_string_array_conversion {
             constexpr auto next  = data.next;
             constexpr auto end   = data.end;
 
-            std::array<int, count> result        = {};
-            std::array<std::size_t, count> skips = {};
-            std::size_t skipped                  = 0;
-            std::size_t traversed                = start;
+            std::array<element_type, count> result = {};
+            std::array<std::size_t, count> skips   = {};
+            std::size_t skipped                    = 0;
+            std::size_t traversed                  = start;
 
             bool previous_skip = false;
             for (auto i = start; i < end; ++i) {
@@ -159,15 +159,16 @@ struct basic_hex_string_array_conversion {
                 ++traversed;
             }
 
-            result[0] = str[start] == mask ? masked : detail::concat_hex(detail::char_to_hex(str[start]), detail::char_to_hex(str[start + 1]));
+            bool one_char = str[start + 1] == delimiter;
+            result[0]     = static_cast<element_type>(str[start] == mask ? masked : (one_char ? detail::char_to_hex(str[start]) : detail::concat_hex(detail::char_to_hex(str[start]), detail::char_to_hex(str[start + 1]))));
 
             std::size_t conversions = 1;
             for (auto i = next; i < end; ++i) {
                 for (auto entry : skips) {
                     if (entry == i && entry < end) {
                         std::size_t idx       = detail::find_first_not_of_start(str, i + 1, delimiter);
-                        bool one_char         = str[idx + 1] == delimiter;
-                        result[conversions++] = str[idx] == mask ? masked : (one_char ? detail::char_to_hex(str[idx]) : detail::concat_hex(detail::char_to_hex(str[idx]), detail::char_to_hex(str[idx + 1])));
+                        one_char              = str[idx + 1] == delimiter;
+                        result[conversions++] = static_cast<element_type>(str[idx] == mask ? masked : (one_char ? detail::char_to_hex(str[idx]) : detail::concat_hex(detail::char_to_hex(str[idx]), detail::char_to_hex(str[idx + 1]))));
                     }
                 }
             }
@@ -180,7 +181,7 @@ struct basic_hex_string_array_conversion {
     };
 };
 
-using hex_string_array_conversion = basic_hex_string_array_conversion<' ', '?', -1>;
+using hex_string_array_conversion = basic_hex_string_array_conversion<' ', '?', int, -1>;
 using simple_conversion           = hex_string_array_conversion;
 }  // namespace stb
 
@@ -197,7 +198,7 @@ struct _ignore_me_stb_compliance_tests {
     static_assert(value_1[5] == 0xFF);
     static_assert(value_1.size() == 6);
 
-    constexpr static auto value_2 = conv_type::build<"        0C f C    a B ef         ">::value;
+    constexpr static auto value_2 = conv_type::build<"        C 0f C    a B ef         ">::value;
     static_assert(value_2[0] == 0x0C);
     static_assert(value_2[1] == 0x0F);
     static_assert(value_2[2] == 0x0C);
